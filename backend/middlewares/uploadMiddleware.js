@@ -3,7 +3,7 @@ const multer = require("multer");
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
 // Configure storage
-const storage = multer.diskStorage({
+const diskStorage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "uploads/");
   },
@@ -12,8 +12,8 @@ const storage = multer.diskStorage({
   },
 });
 
-// File filter
-const fileFilter = (req, file, cb) => {
+// File filter for image uploads
+const imageFileFilter = (req, file, cb) => {
   const allowedTypes = ["image/jpeg", "image/png", "image/jpg"];
   if (allowedTypes.includes(file.mimetype)) {
     cb(null, true);
@@ -22,13 +22,27 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-// Initialize upload
+// File filter for resume (PDF) uploads
+const resumeFileFilter = (req, file, cb) => {
+  if (file.mimetype === "application/pdf") {
+    cb(null, true);
+  } else {
+    cb(new Error("Only .pdf format is allowed for resume uploads"), false);
+  }
+};
+
+// Upload instance for images (disk storage)
 const upload = multer({
-  storage,
-  fileFilter,
-  limits: {
-    fileSize: MAX_FILE_SIZE,
-  },
+  storage: diskStorage,
+  fileFilter: imageFileFilter,
+  limits: { fileSize: MAX_FILE_SIZE },
 });
 
-module.exports = upload;
+// Upload instance for resumes (memory storage, buffer needed by controller)
+const uploadResume = multer({
+  storage: multer.memoryStorage(),
+  fileFilter: resumeFileFilter,
+  limits: { fileSize: MAX_FILE_SIZE },
+});
+
+module.exports = { upload, uploadResume };
