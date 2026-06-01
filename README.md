@@ -689,3 +689,9 @@ If PrepPilot helped you land that dream job or ace your interview, consider:
 ### ⭐ If this project helped you, please give it a star! Your support means everything! 🌟
 
 </div>
+
+## 🤝 Contributing
+
+We welcome contributions from the community!
+
+Please read the [Contributing Guidelines](./CONTRIBUTING.md) before submitting a Pull Request.

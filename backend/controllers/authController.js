@@ -94,7 +94,9 @@ const registerUser = async (req, res) => {
  * }
  */
 const loginUser = async (req, res) => {
-        const user = await User.findOne({email});
+    try {
+        const { email, password } = req.body;
+        const user = await User.findOne({ email });
         if(!user){
             return res.status(401).json({ success: false, message: "Invalid email or password provided" })
         }
@@ -140,6 +142,8 @@ const loginUser = async (req, res) => {
  * }
  */
 const getUserProfile = async (req, res) => {
+    try {
+        const user = req.user;
         if(!user){
             return res.status(404).json({ success: false, message: "Requested user profile not found" });
         }
