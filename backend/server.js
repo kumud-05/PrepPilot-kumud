@@ -68,11 +68,17 @@ app.use((req, res, next) => {
 });
 
 connectDB()
-  .then(() => {
-    console.log("MongoDB connected successfully");
+  .then((success) => {
+    if (success) {
+      console.log("MongoDB connected successfully");
+    } else {
+      console.warn(
+        "⚠️ Failed to connect to MongoDB - server will run without database connection",
+      );
+    }
   })
   .catch((err) => {
-    console.error("MongoDB connection error:", err);
+    console.error("Database connection error:", err.message);
   });
 
 // middleware
@@ -138,4 +144,16 @@ server.on("error", (err) => {
   } else {
     console.error("Server error:", err);
   }
+});
+
+// Handle uncaught exceptions
+process.on("uncaughtException", (err) => {
+  console.error("Uncaught Exception:", err);
+  process.exit(1);
+});
+
+// Handle unhandled promise rejections
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("Unhandled Rejection at:", promise, "reason:", reason);
+  process.exit(1);
 });
