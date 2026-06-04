@@ -448,7 +448,7 @@ const LandingPage = () => {
                 style={{
                   background: "rgba(15,15,20,0.90)",
                   border: "1px solid rgba(255,255,255,0.08)",
-                  minHeight: "700px",
+                  minHeight: "723px",
                 }}
               >
                 {/* Orbit visual */}
@@ -536,7 +536,7 @@ const LandingPage = () => {
                 style={{
                   background: "rgba(15,15,20,0.90)",
                   border: "1px solid rgba(255,255,255,0.08)",
-                  minHeight: "700px",
+                  minHeight: "723px",
                 }}
               >
                 {/* Filter chips interior */}
