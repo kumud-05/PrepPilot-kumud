@@ -81,24 +81,37 @@ const Login = ({ setCurrentPage, onLoginSuccess }) => {
       {/* Form */}
       <form onSubmit={handleLogin} className="space-y-4">
         <Input
-          value={email}
-          onChange={({ target }) => setEmail(target.value)}
-          label="Email Address"
-          placeholder="your@email.com"
-          type="text"
-        />
+  value={email}
+  onChange={({ target }) => setEmail(target.value)}
+  label="Email Address"
+  placeholder="your@email.com"
+  type="text"
+  aria-invalid={!!error && !validateEmail(email)}
+  aria-describedby={
+    error && !validateEmail(email)
+      ? "login-error"
+      : undefined
+  }
+/>
 
         <Input
-          value={password}
-          onChange={({ target }) => setPassword(target.value)}
-          label="Password"
-          placeholder="Min 8 characters"
-          type="password"
-        />
+  value={password}
+  onChange={({ target }) => setPassword(target.value)}
+  label="Password"
+  placeholder="Min 8 characters"
+  type="password"
+  aria-invalid={!!error}
+  aria-describedby={error ? "login-error" : undefined}
+/>
 
         {/* Error Message */}
         {error && (
-          <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+  <div
+    id="login-error"
+    role="alert"
+    aria-live="polite"
+    className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg"
+  >
             <p className="text-red-400 text-sm font-medium">{error}</p>
           </div>
         )}

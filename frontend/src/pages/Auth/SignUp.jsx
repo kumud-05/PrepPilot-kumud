@@ -116,12 +116,14 @@ const SignUp = ({ setCurrentPage }) => {
 
         {/* Full Name Input */}
         <Input
-          value={fullName}
-          onChange={({ target }) => setFullName(target.value)}
-          label="Full Name"
-          placeholder="John Doe"
-          type="text"
-        />
+  value={fullName}
+  onChange={({ target }) => setFullName(target.value)}
+  label="Full Name"
+  placeholder="John Doe"
+  type="text"
+  aria-invalid={!!error && !fullName}
+  aria-describedby={error && !fullName ? "signup-error" : undefined}
+/>
 
         {/* Email Input */}
         <Input
@@ -143,7 +145,12 @@ const SignUp = ({ setCurrentPage }) => {
 
         {/* Error Message */}
         {error && (
-          <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+          <div
+  id="signup-error"
+  role="alert"
+  aria-live="polite"
+  className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg"
+>
             <p className="text-red-400 text-sm font-medium">{error}</p>
           </div>
         )}
