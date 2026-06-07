@@ -926,7 +926,6 @@ const LandingPage = () => {
         isOpen={openAuthModal}
         onClose={() => {
           setOpenAuthModal(false);
-          setCurrentPage("login");
           setPendingRoute(null);
         }}
         hideHeader
