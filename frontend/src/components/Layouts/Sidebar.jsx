@@ -1,7 +1,6 @@
 import React, { useContext, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { UserContext } from "../../context/userContext";
-import ThemeToggle from "../ThemeToggle";
 import Modal from "../Loader/Modal";
 import Login from "../../pages/Auth/Login";
 import {
@@ -347,7 +346,7 @@ const Sidebar = () => {
           </div>
 
           <div className="flex items-center gap-1">
-            <ThemeToggle />
+            
             {user && (
               <button
                 onClick={() => {

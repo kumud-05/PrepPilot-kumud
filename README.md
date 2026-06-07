@@ -258,7 +258,6 @@ PrepPilot/
 │   │   │   ├── SkillAssessment.jsx   # Skill tests
 │   │   │   ├── SheetList.jsx         # Question sheets list
 │   │   │   ├── SheetDetailsPage.jsx  # Sheet details view
-│   │   │   ├── ThemeToggle.jsx       # Dark/Light mode
 │   │   │   ├── Drawer.jsx            # Navigation drawer
 │   │   │   │
 │   │   │   ├── 📂 Cards/             # Card components

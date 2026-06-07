@@ -17,7 +17,7 @@ import SignUp from "./pages/Auth/SignUp";
 import { UserContext } from "./context/userContext";
 import { motion, AnimatePresence } from "framer-motion";
 import ServicesMarquee from "./components/ServicesMarquee";
-import ThemeToggle from "./components/ThemeToggle";
+
 
 /* ─────────────────────────────────────────────
    Reusable animated section wrapper
@@ -230,7 +230,7 @@ const LandingPage = () => {
 
             {/* Right buttons */}
             <div className="flex items-center gap-2 flex-shrink-0">
-              <ThemeToggle />
+              
               {user ? (
                 <ProfileInfoCard />
               ) : (
