@@ -3,12 +3,34 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 const { validateAiPrompt } = require("../middlewares/validateAiPrompt");
 const { sanitizeAiPrompt } = require("../middlewares/sanitizeAiPrompt");
 
+const NodeCache = require("node-cache");
+
+const questionCache = new NodeCache({
+  stdTTL: 3600,
+});
+
 const router = express.Router();
 const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // GET /api/questions?topic=Probability
 router.get("/", validateAiPrompt, sanitizeAiPrompt, async (req, res) => {
   const { topic } = req.query;
+  const cacheKey = `questions:${topic.toLowerCase()}`;
+
+const cachedQuestions =
+  questionCache.get(cacheKey);
+
+if (cachedQuestions) {
+  console.log(
+    `[Cache HIT] Topic: ${topic}`
+  );
+
+  return res.json(cachedQuestions);
+}
+
+console.log(
+  `[Cache MISS] Topic: ${topic}`
+);
   if (!topic) return res.status(400).json({ error: "Topic is required" });
 
   const prompt = `
@@ -80,7 +102,12 @@ router.get("/", validateAiPrompt, sanitizeAiPrompt, async (req, res) => {
           raw: rawText,
         });
     }
-    res.json(questions);
+    questionCache.set(
+  cacheKey,
+  questions
+);
+
+res.json(questions);
   } catch (error) {
     console.error("Gemini API error:", error);
     res
