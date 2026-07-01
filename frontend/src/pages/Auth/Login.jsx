@@ -37,13 +37,13 @@ const Login = ({ setCurrentPage, onLoginSuccess }) => {
         email,
         password,
       });
-      const { token } = response.data;
+      const { accessToken } = response.data;
 
-      if (token) {
+      if (accessToken) {
         if (rememberMe) {
-          localStorage.setItem("token", token);
+          localStorage.setItem("token", accessToken);
         } else {
-          sessionStorage.setItem("token", token);
+          sessionStorage.setItem("token", accessToken);
         }
         updateUser(response.data);
         if (onLoginSuccess) {

@@ -65,11 +65,11 @@ const SignUp = ({ setCurrentPage }) => {
         password,
         profileImageUrl: profileImageUrl || "",
       });
-
+      
       if (response.data.success) {
-        const { token } = response.data;
-        if (token) {
-          sessionStorage.setItem("token", token);
+        const { accessToken } = response.data;
+        if (accessToken) {
+          sessionStorage.setItem("token", accessToken);
           updateUser(response.data);
           navigate("/dashboard");
         }

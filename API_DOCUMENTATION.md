@@ -54,7 +54,7 @@ Response `201`:
   "firstName": "Jane",
   "lastName": "Doe",
   "prepPilotId": "jane1234",
-  "token": "eyJhb..."
+  "accessToken": "eyJhb..."
 }
 ```
 Errors:
@@ -82,7 +82,7 @@ Response `200`:
   "name": "Jane Doe",
   "email": "jane@example.com",
   "profileImageUrl": "https://example.com/avatar.png",
-  "token": "eyJhb..."
+  "accessToken": "eyJhb..."
 }
 ```
 Errors:

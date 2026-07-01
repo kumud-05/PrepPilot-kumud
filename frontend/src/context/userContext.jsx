@@ -45,8 +45,8 @@ export const UserProvider = ({ children }) => {
 
     const updateUser = (userData) => {
     setUser(userData);
-    if (userData.token) {
-        localStorage.setItem("token", userData.token);
+    if (userData.accessToken) {
+        localStorage.setItem("token", userData.accessToken);
     }
     setLoading(false);
 };

@@ -89,7 +89,6 @@ const registerUser = async (req, res) => {
         return res.status(201).json({
             success: true,
             message: "Account created successfully. You can now log in.",
-            token: accessToken,
             accessToken,
             refreshToken,
             _id: user._id,
@@ -143,7 +142,6 @@ const loginUser = async (req, res) => {
             name: user.name,
             email: user.email,
             profileImageUrl: user.profileImageUrl,
-            token: accessToken,
             accessToken,
             refreshToken,
         });
@@ -201,7 +199,6 @@ const refreshToken = async (req, res) => {
         res.json({
             success: true,
             message: "Token refreshed successfully.",
-            token: accessToken,
             accessToken,
             refreshToken: rotatedRefreshToken,
         });
