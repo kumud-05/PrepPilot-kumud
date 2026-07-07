@@ -36,6 +36,15 @@ const registerUser = async (req, res) => {
     try {
         const { name, email, password, profileImageUrl } = req.body;
         
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/;
+
+        if (!emailRegex.test(email)) {
+           return res.status(400).json({
+           success: false,
+           message: "Please enter a valid email address.",
+        });
+        }
+
         const { valid, errors } = validatePassword(password);
         if (!valid) {
             return res.status(400).json({ success: false, message: errors[0] });
