@@ -214,11 +214,13 @@ docker-compose up --build
 ```
 PrepPilot/
 │
-├── 📂 backend/                        # Express.js REST API Server
+├── 📂 backend/                       # Express.js REST API Server
 │   ├── 📂 config/                    # Database & environment configuration
 │   ├── 📂 controllers/               # Business logic & request handlers
 │   │   ├── aiController.js           # AI/Gemini API integration
 │   │   ├── authController.js         # Authentication logic
+|   |   ├── achievementController.js  # Achievement logic
+|   |   ├── jobController.js          # Job Adzuna Logic
 │   │   ├── questionController.js     # Question management
 │   │   ├── resumeController.js       # Resume operations
 │   │   ├── sessionController.js      # Session management
