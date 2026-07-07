@@ -39,7 +39,7 @@ axiosInstance.interceptors.response.use(
                 localStorage.removeItem("token");
                 sessionStorage.removeItem("token");
                 //redirect to login page
-                window.location.href="/";
+                window.location.href="/login";
             }
             else if(error.response.status === 500){
                 console.error("Server error . please try again later");
