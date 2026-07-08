@@ -1,6 +1,6 @@
 import ProfileInfoCard from "./components/Cards/ProfileinfoCard";
 import React, { useContext, useState, useEffect, useRef } from "react";
-import { APP_FEATURES, STATS, HOW_IT_WORKS_STEPS } from "./utils/data";
+import { APP_FEATURES, HOW_IT_WORKS_STEPS } from "./utils/data";
 import { useNavigate } from "react-router-dom";
 
 import {
@@ -21,11 +21,21 @@ import {
   useMotionValue,
   useSpring,
   useTransform,
+  useReducedMotion,
 } from "framer-motion";
 import ServicesMarquee from "./components/ServicesMarquee";
-import { Star, ChevronLeft, ChevronRight, ChevronDown, Check } from "lucide-react"; // Import icons for testimonials + hero
-import TermsandConditions from "./pages/Terms/TermsandConditions";   // ← Add this
-
+import {
+  Star,
+  ChevronLeft,
+  ChevronRight,
+  ChevronDown,
+  Check,
+  FileText,
+  Users,
+  Trophy,
+  Briefcase,
+} from "lucide-react"; // Import icons for testimonials + hero + stats
+import TermsandConditions from "./pages/Terms/TermsandConditions"; // ← Add this
 
 /* ─────────────────────────────────────────────
    Reusable animated section wrapper
@@ -360,6 +370,188 @@ const TestimonialCard = ({ testimonial }) => (
 );
 
 /* ─────────────────────────────────────────────
+   Stats Data
+───────────────────────────────────────────── */
+const STATS_DATA = [
+  {
+    id: 1,
+    value: 10000,
+    suffix: "+",
+    label: "Questions Generated",
+    icon: FileText,
+  },
+  {
+    id: 2,
+    value: 5000,
+    suffix: "+",
+    label: "Active Learners",
+    icon: Users,
+  },
+  {
+    id: 3,
+    value: 98,
+    suffix: "%",
+    label: "Interview Success Rate",
+    icon: Trophy,
+  },
+  {
+    id: 4,
+    value: 50,
+    suffix: "+",
+    label: "Job Roles Covered",
+    icon: Briefcase,
+  },
+];
+
+/* ─────────────────────────────────────────────
+   Count-up number — animates once when in view
+───────────────────────────────────────────── */
+const CountUp = ({ value, duration = 1.8, isInView, prefersReducedMotion }) => {
+  const [display, setDisplay] = useState(0);
+  const hasRun = useRef(false);
+
+  useEffect(() => {
+    if (!isInView || hasRun.current) return;
+    hasRun.current = true;
+
+    if (prefersReducedMotion) {
+      setDisplay(value);
+      return;
+    }
+
+    let rafId;
+    const start = performance.now();
+
+    const tick = (now) => {
+      const progress = Math.min((now - start) / (duration * 1000), 1);
+      // easeOutExpo — fast start, gentle settle
+      const eased = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+      setDisplay(Math.floor(eased * value));
+      if (progress < 1) {
+        rafId = requestAnimationFrame(tick);
+      } else {
+        setDisplay(value);
+      }
+    };
+
+    rafId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafId);
+  }, [isInView, value, duration, prefersReducedMotion]);
+
+  return <>{display.toLocaleString()}</>;
+};
+
+/* ─────────────────────────────────────────────
+   Stat Card — glass card with icon + count-up
+───────────────────────────────────────────── */
+const StatCard = ({ stat, index, isInView, prefersReducedMotion }) => {
+  const Icon = stat.icon;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 28 }}
+      animate={isInView ? { opacity: 1, y: 0 } : {}}
+      transition={{
+        duration: 0.55,
+        delay: prefersReducedMotion ? 0 : index * 0.1,
+        ease: "easeOut",
+      }}
+      whileHover={
+        prefersReducedMotion
+          ? {}
+          : { y: -6, scale: 1.02, transition: { duration: 0.25, ease: "easeOut" } }
+      }
+      tabIndex={0}
+      role="group"
+      aria-label={`${stat.value}${stat.suffix} ${stat.label}`}
+      className="group relative rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md shadow-lg p-6 sm:p-7 flex flex-col items-center text-center gap-3 transition-colors duration-300 hover:border-violet-500/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500/60"
+    >
+      {/* Hover glow */}
+      <div className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-b from-violet-500/10 to-transparent" />
+      <div className="pointer-events-none absolute -inset-px rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow-[0_0_30px_rgba(139,92,246,0.25)]" />
+
+      {/* Icon */}
+      <motion.div
+        className="relative z-10 w-12 h-12 rounded-full flex items-center justify-center bg-violet-500/10 border border-violet-500/25"
+        whileHover={prefersReducedMotion ? {} : { scale: 1.12, rotate: 6 }}
+        transition={{ type: "spring", stiffness: 300, damping: 14 }}
+      >
+        <Icon size={20} className="text-violet-400" />
+      </motion.div>
+
+      {/* Number */}
+      <div className="relative z-10 stat-number text-4xl sm:text-5xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-white via-violet-100 to-violet-300">
+        <CountUp
+          value={stat.value}
+          isInView={isInView}
+          prefersReducedMotion={prefersReducedMotion}
+        />
+        {stat.suffix}
+      </div>
+
+      {/* Label */}
+      <div className="relative z-10 text-sm text-gray-400 font-medium tracking-wide leading-snug">
+        {stat.label}
+      </div>
+    </motion.div>
+  );
+};
+
+/* ─────────────────────────────────────────────
+   Stats Section — viewport-triggered, once
+───────────────────────────────────────────── */
+const StatsSection = ({ statsRef }) => {
+  const localRef = useRef(null);
+  const [isInView, setIsInView] = useState(false);
+  const prefersReducedMotion = useReducedMotion();
+
+  useEffect(() => {
+    const node = localRef.current;
+    if (!node) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsInView(true);
+          observer.disconnect(); // trigger only once
+        }
+      },
+      { threshold: 0.3 },
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <section
+      ref={(node) => {
+        localRef.current = node;
+        if (statsRef) statsRef.current = node;
+      }}
+      className="relative border-y border-white/6 py-20 px-4 overflow-hidden"
+    >
+      {/* Ambient background glow — subtle, behind cards only */}
+      <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[300px] bg-violet-600/10 rounded-full blur-[110px]" />
+      <div className="pointer-events-none absolute top-0 left-[10%] w-64 h-64 bg-blue-600/8 rounded-full blur-[90px]" />
+      <div className="pointer-events-none absolute bottom-0 right-[10%] w-64 h-64 bg-violet-500/8 rounded-full blur-[90px]" />
+
+      <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 relative z-10">
+        {STATS_DATA.map((stat, i) => (
+          <StatCard
+            key={stat.id}
+            stat={stat}
+            index={i}
+            isInView={isInView}
+            prefersReducedMotion={prefersReducedMotion}
+          />
+        ))}
+      </div>
+    </section>
+  );
+};
+
+/* ─────────────────────────────────────────────
    Main Component
 ───────────────────────────────────────────── */
 const LandingPage = () => {
@@ -548,7 +740,6 @@ const LandingPage = () => {
 
             {/* Right buttons */}
             <div className="flex items-center gap-2 flex-shrink-0">
-              
               {user ? (
                 <ProfileInfoCard />
               ) : (
@@ -790,22 +981,9 @@ const LandingPage = () => {
         </section>
 
         {/* ─────────────────────────────────
-            STATS STRIP
+            STATS STRIP — premium glass cards
         ───────────────────────────────── */}
-        <section ref={statsRef} className="relative border-y border-white/6 py-14 px-4">
-          <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
-            {STATS.map((stat, i) => (
-              <FadeIn key={stat.id} delay={i * 0.07} className="text-center">
-                <div className="stat-number text-4xl sm:text-5xl font-extrabold mb-1 tracking-tight">
-                  {stat.value}
-                </div>
-                <div className="text-sm text-gray-400 font-medium">
-                  {stat.label}
-                </div>
-              </FadeIn>
-            ))}
-          </div>
-        </section>
+        <StatsSection statsRef={statsRef} />
 
         {/* ─────────────────────────────────
             MARQUEE / SERVICES STRIP
@@ -831,16 +1009,15 @@ const LandingPage = () => {
 
           {/* 3 equal columns */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 px-6 items-stretch">
-
             {/* ── CARD 1: Personalized Recommendations ── */}
             <FadeIn delay={0.05} className="flex h-full">
               <div className="flex flex-col w-full rounded-2xl overflow-hidden border border-white/8 bg-[#0f0f14] min-h-[520px]">
                 <div className="flex-1 p-8 flex flex-col gap-3.5 border-b border-white/6">
                   {[
-                    { label: "Frontend Engineer Track",  sub: "React · TypeScript · Performance" },
-                    { label: "System Design Deep Dive",  sub: "HLD · LLD · Scalability"          },
-                    { label: "DSA Mastery Sprint",       sub: "Arrays · Graphs · DP"              },
-                    { label: "Behavioral Interview Prep", sub: "STAR · Leadership · Culture"      },
+                    { label: "Frontend Engineer Track", sub: "React · TypeScript · Performance" },
+                    { label: "System Design Deep Dive", sub: "HLD · LLD · Scalability" },
+                    { label: "DSA Mastery Sprint", sub: "Arrays · Graphs · DP" },
+                    { label: "Behavioral Interview Prep", sub: "STAR · Leadership · Culture" },
                   ].map((item, i) => (
                     <div key={i} className="flex items-center gap-4 px-5 py-4 rounded-xl bg-white/[0.03] border border-white/6">
                       <div className="w-1.5 h-10 rounded-full bg-violet-500/60 flex-shrink-0" />
@@ -909,7 +1086,7 @@ const LandingPage = () => {
                 <div className="flex-1 p-8 flex flex-col gap-4 border-b border-white/6">
                   {[
                     { label: "Difficulty", tags: ["Easy", "Medium", "Hard", "Expert"] },
-                    { label: "Role Type",  tags: ["Frontend", "Backend", "Full Stack", "DevOps"] },
+                    { label: "Role Type", tags: ["Frontend", "Backend", "Full Stack", "DevOps"] },
                     { label: "Tech Stack", tags: ["React", "Node.js", "Python", "TypeScript"] },
                   ].map((group) => (
                     <div key={group.label} className="rounded-xl p-4 bg-white/[0.03] border border-white/6">
@@ -934,7 +1111,6 @@ const LandingPage = () => {
                 </div>
               </div>
             </FadeIn>
-
           </div>
         </section>
 
@@ -1131,7 +1307,7 @@ const LandingPage = () => {
             </FadeIn>
 
             {/* Testimonials Scroller */}
-            <div 
+            <div
               className="relative overflow-hidden py-8"
               onMouseEnter={() => setIsPaused(true)}
               onMouseLeave={() => setIsPaused(false)}
@@ -1142,14 +1318,14 @@ const LandingPage = () => {
 
               {/* Slider Track Wrapper */}
               <div className="overflow-hidden">
-                <div 
+                <div
                   className="flex transition-transform duration-500 ease-in-out"
                   style={{
-                    transform: `translateX(-${currentIndex * (100 / visibleCards)}%)`
+                    transform: `translateX(-${currentIndex * (100 / visibleCards)}%)`,
                   }}
                 >
                   {TESTIMONIALS.map((testimonial) => (
-                    <div 
+                    <div
                       key={testimonial.id}
                       className="flex-none p-3"
                       style={{ width: `${100 / visibleCards}%` }}
@@ -1229,74 +1405,70 @@ const LandingPage = () => {
             FOOTER
         ───────────────────────────────── */}
         <footer className="w-full border-t border-white/5 bg-[#0B0F19] text-gray-400 font-sans mt-20">
-  <div className="max-w-7xl mx-auto px-6 pt-16 pb-8 sm:px-8 lg:px-12">
-    
-    {/* Main Multi-Column Grid */}
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 pb-12 border-b border-white/5">
-      
-      {/* Brand Info Column */}
-      <div className="lg:col-span-2 space-y-4">
-        <div className="flex items-center gap-2">
-          <img
-            src="/PrepPilot-Logo.png"
-            alt="PrepPilot Logo"
-            className="w-6 h-6 object-contain"
-          />
-          <span className="font-bold text-xl tracking-tight text-white">
-            PrepPilot AI
-          </span>
-        </div>
-        <p className="text-sm text-gray-400 leading-relaxed max-w-sm">
-          Your ultimate companion for crushing technical interviews with AI-powered questions, real-time feedback, and comprehensive preparation tools.
-        </p>
-      </div>
+          <div className="max-w-7xl mx-auto px-6 pt-16 pb-8 sm:px-8 lg:px-12">
+            {/* Main Multi-Column Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 pb-12 border-b border-white/5">
+              {/* Brand Info Column */}
+              <div className="lg:col-span-2 space-y-4">
+                <div className="flex items-center gap-2">
+                  <img
+                    src="/PrepPilot-Logo.png"
+                    alt="PrepPilot Logo"
+                    className="w-6 h-6 object-contain"
+                  />
+                  <span className="font-bold text-xl tracking-tight text-white">
+                    PrepPilot AI
+                  </span>
+                </div>
+                <p className="text-sm text-gray-400 leading-relaxed max-w-sm">
+                  Your ultimate companion for crushing technical interviews with AI-powered questions, real-time feedback, and comprehensive preparation tools.
+                </p>
+              </div>
 
-      {/* Column 2: Platform Features */}
-      <div className="space-y-4">
-        <h3 className="text-sm font-semibold text-white tracking-wider uppercase">Features</h3>
-        <ul className="space-y-2.5 text-sm">
-          <li><a href="/ai-helper" className="hover:text-white transition-colors duration-200">AI Question Gen</a></li>
-          <li><a href="/coding-sheets" className="hover:text-white transition-colors duration-200">DSA Sheets</a></li>
-          <li><a href="/compiler" className="hover:text-white transition-colors duration-200">Code Compiler</a></li>
-          <li><a href="/assessment" className="hover:text-white transition-colors duration-200">Skill Tests</a></li>
-        </ul>
-      </div>
+              {/* Column 2: Platform Features */}
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold text-white tracking-wider uppercase">Features</h3>
+                <ul className="space-y-2.5 text-sm">
+                  <li><a href="/ai-helper" className="hover:text-white transition-colors duration-200">AI Question Gen</a></li>
+                  <li><a href="/coding-sheets" className="hover:text-white transition-colors duration-200">DSA Sheets</a></li>
+                  <li><a href="/compiler" className="hover:text-white transition-colors duration-200">Code Compiler</a></li>
+                  <li><a href="/assessment" className="hover:text-white transition-colors duration-200">Skill Tests</a></li>
+                </ul>
+              </div>
 
-      {/* Column 3: Resources */}
-      <div className="space-y-4">
-        <h3 className="text-sm font-semibold text-white tracking-wider uppercase">Resources</h3>
-        <ul className="space-y-2.5 text-sm">
-          <li><a href="/resume-builder" className="hover:text-white transition-colors duration-200">Resume Builder</a></li>
-          <li><a href="/notes-books" className="hover:text-white transition-colors duration-200">Books Library</a></li>
-          <li><a href="/project-ideas" className="hover:text-white transition-colors duration-200">Project Ideas</a></li>
-          <li><a href="/interview-experiences" className="hover:text-white transition-colors duration-200">Experiences</a></li>
-        </ul>
-      </div>
+              {/* Column 3: Resources */}
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold text-white tracking-wider uppercase">Resources</h3>
+                <ul className="space-y-2.5 text-sm">
+                  <li><a href="/resume-builder" className="hover:text-white transition-colors duration-200">Resume Builder</a></li>
+                  <li><a href="/notes-books" className="hover:text-white transition-colors duration-200">Books Library</a></li>
+                  <li><a href="/project-ideas" className="hover:text-white transition-colors duration-200">Project Ideas</a></li>
+                  <li><a href="/interview-experiences" className="hover:text-white transition-colors duration-200">Experiences</a></li>
+                </ul>
+              </div>
 
-      {/* Column 4: Community */}
-      <div className="space-y-4">
-        <h3 className="text-sm font-semibold text-white tracking-wider uppercase">Community</h3>
-        <ul className="space-y-2.5 text-sm">
-          <li><a href="https://github.com/Canopus-Labs/PrepPilot.git" target="_blank" rel="noreferrer" className="hover:text-white transition-colors duration-200">GitHub</a></li>
-          <li><a href="/repository-hive" className="hover:text-white transition-colors duration-200">Repository Hive</a></li>
-          <li><a href="/oss-blog" className="hover:text-white transition-colors duration-200">OSS Blog</a></li>
-          <li><a href="/oss-events" className="hover:text-white transition-colors duration-200">Events</a></li>
-        </ul>
-      </div>
+              {/* Column 4: Community */}
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold text-white tracking-wider uppercase">Community</h3>
+                <ul className="space-y-2.5 text-sm">
+                  <li><a href="https://github.com/Canopus-Labs/PrepPilot.git" target="_blank" rel="noreferrer" className="hover:text-white transition-colors duration-200">GitHub</a></li>
+                  <li><a href="/repository-hive" className="hover:text-white transition-colors duration-200">Repository Hive</a></li>
+                  <li><a href="/oss-blog" className="hover:text-white transition-colors duration-200">OSS Blog</a></li>
+                  <li><a href="/oss-events" className="hover:text-white transition-colors duration-200">Events</a></li>
+                </ul>
+              </div>
+            </div>
 
-    </div>
-
-    {/* Bottom Bar Container */}
-    <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-500">
-      <p>© {new Date().getFullYear()} PrepPilot AI. All rights reserved.</p>
-      <div className="flex space-x-6">
-        <a href="#" className="hover:text-gray-300 transition-colors">Privacy Policy</a>
-        <a href="/terms-and-conditions" className="hover:text-gray-300 transition-colors">Terms of Service</a>
-      </div>
-    </div>
-
-  </div>
-</footer>
+            {/* Bottom Bar Container */}
+            <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-500">
+              <p>© {new Date().getFullYear()} PrepPilot AI. All rights reserved.</p>
+              <div className="flex space-x-6">
+                <a href="#" className="hover:text-gray-300 transition-colors">Privacy Policy</a>
+                <a href="/terms-and-conditions" className="hover:text-gray-300 transition-colors">Terms of Service</a>
+              </div>
+            </div>
+          </div>
+        </footer>
       </div>
       {/* Premium Back To Top Button */}
       <AnimatePresence>
@@ -1378,7 +1550,7 @@ const LandingPage = () => {
               setCurrentPage={setCurrentPage}
               onLoginSuccess={() => {
                 setOpenAuthModal(false);
-          
+
                 if (pendingRoute) {
                   navigate(pendingRoute);
                   setPendingRoute(null);
@@ -1388,7 +1560,7 @@ const LandingPage = () => {
               }}
             />
           </div>
-          
+
           <div className={currentPage === "signup" ? "block" : "hidden"}>
             <SignUp setCurrentPage={setCurrentPage} />
           </div>
