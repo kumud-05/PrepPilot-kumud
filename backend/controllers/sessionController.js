@@ -28,7 +28,7 @@ const MAX_SESSIONS = Number(process.env.MAX_SESSIONS) || 50;;
 exports.createSession = async (req, res) => {
   try {
   const {role , experience , topicsToFocus , description , question }= req.body;
-    const userId = req.user._id || req.user.id;
+    const userId = req.user._id;
 
     // Count existing sessions for this user
     const sessionCount = await Session.countDocuments({
@@ -87,7 +87,7 @@ exports.createSession = async (req, res) => {
  */
 exports.getMySessions = async (req, res) => {
     try {
-      const userId = req.user._id || req.user.id;
+      const userId = req.user._id;
       const session = await Session.find({ user: userId })
         .sort({ createdAt: -1 })
         .populate("questions");
@@ -157,7 +157,7 @@ exports.deleteSession = async (req, res) => {
         
     }
     
-    const userId = req.user._id || req.user.id;
+    const userId = req.user._id;
 
     // Check if logged-in user owns this session
     if(session.user.toString() !== userId.toString()){
