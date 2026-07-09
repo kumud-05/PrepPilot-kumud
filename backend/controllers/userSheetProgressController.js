@@ -1,45 +1,30 @@
+const UserSheetProgress = require("../models/UserSheetProgress");
+
 /**
  * Get all sheet progress entries for the authenticated user.
  * @route GET /api/user/sheet-progress
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- * @returns {Promise<void>}
- * @throws {Error} When retrieval fails.
- * @example
- * GET /api/user/sheet-progress
- * Authorization: Bearer eyJhb...
- * @example
- * 200 {"success": true, "progressList": [{"sheetId":"...","percentage":80}]}
  */
 exports.getAllProgress = async (req, res) => {
   const userId = req.user._id;
+
   try {
     const progressList = await UserSheetProgress.find({ userId });
-    res.json({ success: true, progressList });
+
+    res.json({
+      success: true,
+      progressList,
+    });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({
+      success: false,
+      error: err.message,
+    });
   }
 };
-const UserSheetProgress = require('../models/UserSheetProgress');
 
 /**
  * Save or update user progress for a sheet.
  * @route POST /api/user/sheet-progress
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- * @returns {Promise<void>}
- * @throws {Error} When saving fails.
- * @example
- * POST /api/user/sheet-progress
- * Authorization: Bearer eyJhb...
- * {
- *   "sheetId": "arrays",
- *   "followed": true,
- *   "completedTopics": ["Two Pointers","Sliding Window"],
- *   "percentage": 60
- * }
- * @example
- * 200 {"success": true, "progress": {"sheetId":"arrays","percentage":60}}
  */
 exports.saveProgress = async (req, res) => {
   const {
@@ -51,11 +36,25 @@ exports.saveProgress = async (req, res) => {
 
   const userId = req.user._id;
 
+  // Validate sheetId before using it in a Mongo query
+  if (
+    typeof sheetId !== "string" ||
+    sheetId.trim().length === 0 ||
+    sheetId.length > 100
+  ) {
+    return res.status(400).json({
+      success: false,
+      error: "Invalid sheetId",
+    });
+  }
+
+  const validatedSheetId = sheetId.trim();
+
   try {
     const progress = await UserSheetProgress.findOneAndUpdate(
       {
         userId,
-        sheetId,
+        sheetId: validatedSheetId,
       },
       {
         $set: {
@@ -71,18 +70,17 @@ exports.saveProgress = async (req, res) => {
       }
     );
 
-    res.json({
+    return res.json({
       success: true,
       progress,
     });
   } catch (err) {
     // Rare duplicate-key race during concurrent upserts.
-    // Retry once by reading the existing document.
     if (err.code === 11000) {
       try {
         const progress = await UserSheetProgress.findOne({
           userId,
-          sheetId,
+          sheetId: validatedSheetId,
         });
 
         return res.json({
@@ -97,7 +95,7 @@ exports.saveProgress = async (req, res) => {
       }
     }
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: err.message,
     });
@@ -107,23 +105,39 @@ exports.saveProgress = async (req, res) => {
 /**
  * Get progress for a specific sheet for the authenticated user.
  * @route GET /api/user/sheet-progress/:sheetId
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- * @returns {Promise<void>}
- * @throws {Error} When retrieval fails.
- * @example
- * GET /api/user/sheet-progress/arrays
- * Authorization: Bearer eyJhb...
- * @example
- * 200 {"success": true, "progress": {"sheetId":"arrays","percentage":60}}
  */
 exports.getProgress = async (req, res) => {
   const { sheetId } = req.params;
   const userId = req.user._id;
+
+  // Validate sheetId before using it in a Mongo query
+  if (
+    typeof sheetId !== "string" ||
+    sheetId.trim().length === 0 ||
+    sheetId.length > 100
+  ) {
+    return res.status(400).json({
+      success: false,
+      error: "Invalid sheetId",
+    });
+  }
+
+  const validatedSheetId = sheetId.trim();
+
   try {
-    const progress = await UserSheetProgress.findOne({ userId, sheetId });
-    res.json({ success: true, progress });
+    const progress = await UserSheetProgress.findOne({
+      userId,
+      sheetId: validatedSheetId,
+    });
+
+    res.json({
+      success: true,
+      progress,
+    });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({
+      success: false,
+      error: err.message,
+    });
   }
 };
