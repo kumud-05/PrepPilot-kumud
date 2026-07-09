@@ -5,7 +5,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { UserContext } from "../../context/userContext";
 import Modal from "../Loader/Modal";
 import Login from "../../pages/Auth/Login";
-
+import ThemeToggle from "../ThemeToggle";
 
 const Navbar = () => {
   const SERVICES = [
@@ -305,7 +305,7 @@ const Navbar = () => {
       <Modal
         isOpen={showLoginModal}
         onClose={() => setShowLoginModal(false)}
-        title="Login"
+        hideHeader
       >
         <Login setCurrentPage={() => {}} />
       </Modal>

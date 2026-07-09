@@ -20,6 +20,7 @@ import ProgressTrackerDashboard from "./pages/Home/ProgressTrackerDashboard";
 import InterviewPrep from "./pages/InterviewPrep/InterviewPrep";
 import AIHelper from "./components/AIHepler";
 import PracticePage from "./pages/InterviewPrep/components/PracticePage";
+import CognitiveGamesPage from "./pages/CognitiveGames/CognitiveGamesPage";
 import { useContext } from "react";
 import { UserContext } from "./context/userContext";
 import MainLayout from "./components/Layouts/MainLayout";
@@ -28,11 +29,13 @@ import ResumeTemplates from "./pages/ResumeBuilder/ResumeTemplates";
 import ResumeEditor from "./pages/ResumeBuilder/ResumeEditor";
 import ResumeAnalyzer from "./pages/ResumeBuilder/ResumeAnalyzer";
 import InterviewExperiences from "./pages/InterviewExperiences/InterviewExperiences";
+import TermsandConditions from "./pages/Terms/TermsandConditions";
 import ProjectIdeas from "./pages/ProjectIdeas/ProjectIdeas";
 import RepositoryHive from "./pages/OpenSource/RepositoryHive";
 import OSSBlog from "./pages/OpenSource/OSSBlog";
 import OpenSourceEvents from "./pages/OpenSource/OpenSourceEvents";
 import NotesBooks from "./pages/NotesBooks/NotesBooks";
+import JobsForYou from "./pages/Jobs/JobsForYou";
 import HelpSupport from "./pages/Support/HelpSupport";
 import Settings from "./pages/Settings/Settings";
 import NotFound from "./pages/NotFound";
@@ -74,7 +77,11 @@ const App = () => {
                   element={
                     <ErrorBoundary>
                       <PageTransition>
-                        <Login />
+                        <div className="min-h-screen w-full flex items-center justify-center bg-[#0B0F19] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#1a1a2e] via-[#0B0F19] to-[#05080f]">
+                          <div className="w-full max-w-[420px] rounded-2xl p-6 sm:p-8 shadow-2xl border border-white/5 bg-[#111827]">
+                            <Login />
+                          </div>
+                        </div>
                       </PageTransition>
                     </ErrorBoundary>
                   }
@@ -163,6 +170,16 @@ const App = () => {
                       <ProtectedRoute>
                         <PageTransition>
                           <PracticePage />
+                        </PageTransition>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/cognitive-games"
+                    element={
+                      <ProtectedRoute>
+                        <PageTransition>
+                          <CognitiveGamesPage />
                         </PageTransition>
                       </ProtectedRoute>
                     }
@@ -307,6 +324,26 @@ const App = () => {
                           <Settings />
                         </PageTransition>
                       </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/jobs"
+                    element={
+                      <ProtectedRoute>
+                        <PageTransition>
+                          <JobsForYou />
+                        </PageTransition>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/terms-and-conditions"
+                    element={
+                      <ErrorBoundary>
+                        <PageTransition>
+                          <TermsandConditions />
+                        </PageTransition>
+                      </ErrorBoundary>
                     }
                   />
                 </Route>

@@ -1,8 +1,5 @@
 const express = require("express");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-const { validateAiPrompt } = require("../middlewares/validateAiPrompt");
-const { sanitizeAiPrompt } = require("../middlewares/sanitizeAiPrompt");
-
 const NodeCache = require("node-cache");
 
 const questionCache = new NodeCache({
@@ -56,9 +53,13 @@ async function generateWithRetry(model, prompt) {
 }
 
 // GET /api/questions?topic=Probability
-router.get("/", validateAiPrompt, sanitizeAiPrompt, async (req, res) => {
+router.get("/", async (req, res) => {
   const { topic } = req.query;
-  const cacheKey = `questions:${topic.toLowerCase()}`;
+  if (typeof topic !== "string" || topic.trim() === "") {
+    return res.status(400).json({ error: "Topic is required" });
+  }
+  const normalizedTopic = topic.trim().toLowerCase();
+  const cacheKey = `questions:${normalizedTopic}`;
 
 const cachedQuestions =
   questionCache.get(cacheKey);
@@ -74,7 +75,6 @@ if (cachedQuestions) {
 console.log(
   `[Cache MISS] Topic: ${topic}`
 );
-  if (!topic) return res.status(400).json({ error: "Topic is required" });
 
   const prompt = `
     Generate 5 multiple-choice aptitude questions on the topic: ${topic}.

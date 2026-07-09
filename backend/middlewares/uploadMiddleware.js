@@ -1,7 +1,20 @@
 const multer = require("multer");
 const fs = require("fs");
+const path = require("path");
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
+
+const sanitizeFilename = (filename) => {
+  const ext = path.extname(filename);
+  const basename = path.basename(filename, ext);
+
+  const sanitizedBase = basename
+    .replace(/[^a-zA-Z0-9_-]/g, "_")
+    .replace(/_+/g, "_")
+    .replace(/^_+|_+$/g, "");
+
+  return `${sanitizedBase || "file"}${ext.toLowerCase()}`;
+};
 
 // Create uploads directory if it doesn't exist
 if (!fs.existsSync("uploads")) {
@@ -14,7 +27,8 @@ const diskStorage = multer.diskStorage({
     cb(null, "uploads/");
   },
   filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
+    const safeFilename = sanitizeFilename(file.originalname);
+    cb(null, `${Date.now()}-${safeFilename}`);
   },
 });
 
