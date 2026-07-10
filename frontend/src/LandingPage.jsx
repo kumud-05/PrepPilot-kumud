@@ -35,11 +35,7 @@ import {
   Trophy,
   Briefcase,
 } from "lucide-react"; // Import icons for testimonials + hero + stats
-import TermsandConditions from "./pages/Terms/TermsandConditions"; // ← Add this
-} from "framer-motion";
-import ServicesMarquee from "./components/ServicesMarquee";
-import { Star, ChevronLeft, ChevronRight, ChevronDown, Check } from "lucide-react"; // Import icons for testimonials + hero
-import TermsandConditions from "./pages/Terms/TermsandConditions";   // ← Add this
+import TermsandConditions from "./pages/Terms/TermsandConditions";
 
 
 /* ─────────────────────────────────────────────
