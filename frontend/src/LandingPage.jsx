@@ -1302,33 +1302,6 @@ const LandingPage = () => {
                   delay: p.delay,
                 }}
               />
-
-          {/* Pulsing radial glow behind headline */}
-          <motion.div
-            className="pointer-events-none absolute top-[38%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[920px] max-w-[95vw] h-[480px] rounded-full"
-            style={{
-              background:
-                "radial-gradient(closest-side, rgba(139,92,246,0.55), transparent 72%)",
-            }}
-            animate={{ opacity: [0.08, 0.18, 0.08] }}
-            transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
-          />
-
-          {/* Subtle floating particles */}
-          <div className="pointer-events-none absolute inset-0 hidden sm:block">
-            {PARTICLES.map((p, i) => (
-              <motion.span
-                key={i}
-                className="absolute rounded-full bg-violet-300/40"
-                style={{ top: p.top, left: p.left, width: p.size, height: p.size }}
-                animate={{ y: [0, -18, 0], opacity: [0.15, 0.55, 0.15] }}
-                transition={{
-                  duration: p.duration,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                  delay: p.delay,
-                }}
-              />
             ))}
           </div>
 
