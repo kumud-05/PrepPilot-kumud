@@ -1,8 +1,7 @@
 import ProfileInfoCard from "./components/Cards/ProfileinfoCard";
 import React, { useContext, useState, useEffect, useRef } from "react";
 import { APP_FEATURES, STATS, HOW_IT_WORKS_STEPS } from "./utils/data";
-import { useNavigate } from "react-router-dom";
-import { Link, something } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import {
   LuSparkles,
   LuChevronRight,
@@ -107,7 +106,7 @@ const TypewriterText = () => {
 /* ─────────────────────────────────────────────
    HERO — floating glass card (parallax + float)
 ───────────────────────────────────────────── */
-const FloatingCard = ({ label, style, depth, delay, floatDuration, mouseX, mouseY }) => {
+const FloatingCard = ({ label, sub, tag, style, depth, delay, floatDuration, mouseX, mouseY }) => {
   const px = useTransform(mouseX, [-0.5, 0.5], [-depth, depth]);
   const py = useTransform(mouseY, [-0.5, 0.5], [-depth * 0.6, depth * 0.6]);
 
@@ -117,38 +116,80 @@ const FloatingCard = ({ label, style, depth, delay, floatDuration, mouseX, mouse
       style={{ ...style, x: px, y: py }}
     >
       <motion.div
-        className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/10 bg-white/[0.05] backdrop-blur-md shadow-lg shadow-black/30"
-        initial={{ opacity: 0, y: 16, scale: 0.92 }}
+        className="flex flex-col gap-2 px-4 py-3.5 rounded-2xl border border-white/10 backdrop-blur-xl shadow-2xl shadow-black/40 min-w-[180px]"
+        style={{ background: "rgba(15,15,25,0.75)" }}
+        initial={{ opacity: 0, y: 20, scale: 0.88 }}
         animate={{
           opacity: 1,
           scale: 1,
-          y: [0, -12, 0],
-          rotate: [0, 1.6, -1.6, 0],
+          y: [0, -10, 0],
         }}
         transition={{
-          opacity: { duration: 0.7, delay },
-          scale: { duration: 0.7, delay },
-          y: { duration: floatDuration, repeat: Infinity, ease: "easeInOut", delay: delay + 0.5 },
-          rotate: { duration: floatDuration + 2, repeat: Infinity, ease: "easeInOut", delay: delay + 0.5 },
+          opacity: { duration: 0.6, delay },
+          scale:   { duration: 0.6, delay },
+          y: { duration: floatDuration, repeat: Infinity, ease: "easeInOut", delay: delay + 0.4 },
         }}
       >
-        <span className="w-5 h-5 rounded-full bg-violet-500/20 border border-violet-400/40 flex items-center justify-center flex-shrink-0">
-          <Check size={11} className="text-violet-300" />
-        </span>
-        <span className="text-xs font-medium text-gray-200 whitespace-nowrap">
-          {label}
-        </span>
+        {/* Top row: check + label */}
+        <div className="flex items-center gap-2.5">
+          <div className="w-6 h-6 rounded-lg bg-violet-500/20 border border-violet-400/30 flex items-center justify-center flex-shrink-0">
+            <Check size={12} className="text-violet-300" />
+          </div>
+          <span className="text-[13px] font-semibold text-white whitespace-nowrap">{label}</span>
+        </div>
+        {/* Sub text */}
+        {sub && (
+          <p className="text-[11px] text-gray-500 leading-snug pl-[34px]">{sub}</p>
+        )}
+        {/* Tag */}
+        {tag && (
+          <div className="pl-[34px]">
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-violet-500/15 text-violet-300 border border-violet-500/20">
+              {tag}
+            </span>
+          </div>
+        )}
       </motion.div>
     </motion.div>
   );
 };
 
 const FLOATING_CARDS = [
-  { label: "React Interview", style: { top: "10%", left: "2%" }, depth: 14, delay: 0.1, floatDuration: 5 },
-  { label: "System Design", style: { top: "68%", left: "6%" }, depth: 22, delay: 0.5, floatDuration: 6.5 },
-  { label: "DSA", style: { top: "16%", left: "88%" }, depth: 18, delay: 0.9, floatDuration: 5.5 },
-  { label: "Resume Review", style: { top: "70%", left: "84%" }, depth: 12, delay: 1.3, floatDuration: 6 },
-  { label: "AI Feedback", style: { top: "40%", left: "92%" }, depth: 26, delay: 0.3, floatDuration: 7 },
+  {
+    label: "React Interview",
+    sub: "15 questions generated",
+    tag: "Frontend",
+    style: { top: "12%", left: "2%" },
+    depth: 14, delay: 0.1, floatDuration: 5.2,
+  },
+  {
+    label: "System Design",
+    sub: "HLD · LLD · Scalability",
+    tag: "Senior Level",
+    style: { top: "64%", left: "4%" },
+    depth: 20, delay: 0.5, floatDuration: 6.5,
+  },
+  {
+    label: "DSA Mastery",
+    sub: "Arrays · Trees · DP",
+    tag: "NeetCode 150",
+    style: { top: "14%", right: "3%" },
+    depth: 18, delay: 0.9, floatDuration: 5.8,
+  },
+  {
+    label: "Resume Reviewed",
+    sub: "ATS score: 91%",
+    tag: "AI Analysis",
+    style: { top: "62%", right: "3%" },
+    depth: 12, delay: 1.2, floatDuration: 6.2,
+  },
+  {
+    label: "AI Feedback",
+    sub: "Instant concept breakdown",
+    tag: "Gemini 2.5",
+    style: { top: "38%", right: "1%" },
+    depth: 24, delay: 0.3, floatDuration: 7,
+  },
 ];
 
 /* ─────────────────────────────────────────────
