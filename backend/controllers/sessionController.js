@@ -1,5 +1,6 @@
 const Session = require("../models/Session");
 const Question = require("../models/Question");
+const mongoose = require("mongoose");
 
 
 const MAX_SESSIONS = Number(process.env.MAX_SESSIONS) || 50;;
@@ -25,7 +26,6 @@ const MAX_SESSIONS = Number(process.env.MAX_SESSIONS) || 50;;
  * @example
  * 201 {"success": true, "session": {"_id":"...","role":"Backend Engineer",...}}
  */
-const mongoose = require("mongoose");
 
 exports.createSession = async (req, res) => {
     const mongoSession = await mongoose.startSession();
@@ -152,7 +152,6 @@ exports.getSessionById = async (req, res) => {
  * @example
  * 200 {"message":"Session delete sucessfully"}
  */
-const mongoose = require("mongoose");
 
 exports.deleteSession = async (req, res) => {
     const transaction = await mongoose.startSession();
