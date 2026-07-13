@@ -91,7 +91,7 @@ exports.createSession = async (req, res) => {
  */
 exports.getMySessions = async (req, res) => {
     try {
-      const userId = req.user._id || req.user.id;
+      const userId = req.user._id;
       const session = await Session.find({ user: userId })
         .sort({ createdAt: -1 })
         .populate("questions");
@@ -160,10 +160,10 @@ exports.deleteSession = async (req, res) => {
             const { id } = req.params;
             const userId = req.user._id;
 
-            const session = await Session.findOne({
-                _id: id,
-                user: userId,
-            }).session(transaction);
+          const session = await Session.findOne({
+              _id: id,
+              user: userId,
+          }).session(transaction);
 
             if (!session) {
                 throw new Error("SESSION_NOT_FOUND");

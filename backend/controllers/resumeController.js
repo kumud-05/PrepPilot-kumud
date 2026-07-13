@@ -203,7 +203,7 @@ const Resume = require("../models/Resume");
 const saveResume = async (req, res) => {
     try {
         const { title, latexCode, resumeId } = req.body;
-        const userId = req.user._id || req.user.id;
+        const userId = req.user._id;
 
         if (!title || !latexCode) {
             return res.status(400).json({ success: false, message: "Title and LaTeX code are required." });
@@ -249,7 +249,7 @@ const saveResume = async (req, res) => {
  */
 const getMyResumes = async (req, res) => {
     try {
-        const userId = req.user._id || req.user.id;
+        const userId = req.user._id;
         const resumes = await Resume.find({ user: userId }).sort({ updatedAt: -1 });
         res.status(200).json({ success: true, resumes });
     } catch (error) {
