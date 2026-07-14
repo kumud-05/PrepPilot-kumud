@@ -882,21 +882,20 @@ const LandingPage = () => {
         </ul>
       </div>
 
-            {/* Bottom Bar Container */}
-            <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-500">
-              <p>© {new Date().getFullYear()} PrepPilot AI. All rights reserved.</p>
-              <div className="flex space-x-6">
-<a
-  href="/privacy-policy"
-  className="hover:text-gray-300 transition-colors"
->
-  Privacy Policy
-</a>                <a href="/terms-and-conditions" className="hover:text-gray-300 transition-colors">Terms of Service</a>
-              </div>
-            </div>
-          </div>
-        </footer>
+    </div>{/* end grid */}
+
+    {/* Bottom Bar */}
+    <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-500">
+      <p>© {new Date().getFullYear()} PrepPilot AI. All rights reserved.</p>
+      <div className="flex space-x-6">
+        <a href="/privacy-policy" className="hover:text-gray-300 transition-colors">Privacy Policy</a>
+        <a href="/terms-and-conditions" className="hover:text-gray-300 transition-colors">Terms of Service</a>
       </div>
+    </div>
+
+  </div>{/* end max-w-7xl */}
+</footer>
+      </div>{/* end page wrapper */}
       {/* Premium Back To Top Button */}
       <AnimatePresence>
         {showScrollTop && (
