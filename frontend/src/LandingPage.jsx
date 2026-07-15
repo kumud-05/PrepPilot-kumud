@@ -358,7 +358,7 @@ const LandingPage = () => {
                 <button
                   key={item.route}
                   onClick={() => handleNav(item.route)}
-                  className="px-3.5 py-2 text-sm text-gray-300 hover:text-white transition-colors duration-150 whitespace-nowrap"
+                  className="px-3.5 py-2 text-sm text-gray-300 hover:text-white transition-colors duration-150 whitespace-nowrap cursor-pointer"
                 >
                   {item.label}
                 </button>
@@ -375,7 +375,7 @@ const LandingPage = () => {
                   {/* Login – outlined dark button (like opensox "Contribute") */}
                   <button
                     onClick={() => setOpenAuthModal(true)}
-                    className="hidden sm:flex items-center gap-1.5 text-sm text-gray-200 hover:text-white font-medium px-4 py-2 rounded-xl transition-all duration-150"
+                    className="hidden sm:flex items-center gap-1.5 text-sm text-gray-200 hover:text-white font-medium px-4 py-2 rounded-xl transition-all duration-150 cursor-pointer"
                     style={{
                       background: "rgba(255,255,255,0.06)",
                       border: "1px solid rgba(255,255,255,0.12)",
@@ -387,7 +387,7 @@ const LandingPage = () => {
                   {/* Get Started – solid violet pill */}
                   <button
                     onClick={handleCTA}
-                    className="flex items-center gap-2 text-white text-sm font-semibold px-5 py-2 rounded-xl transition-all duration-150"
+                    className="flex items-center gap-2 text-white text-sm font-semibold px-5 py-2 rounded-xl transition-all duration-150 cursor-pointer"
                     style={{
                       background:
                         "linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)",
