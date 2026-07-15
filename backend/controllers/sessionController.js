@@ -67,6 +67,19 @@ exports.createSession = async (req, res) => {
                     session: mongoSession,
                 }
             );
+            const createdQuestions = await Question.insertMany(
+  (req.body.question || []).map((q) => ({
+    session: createdSession[0]._id,
+    question: q.question,
+    answer: q.answer,
+  })),
+  { session: mongoSession }
+);
+createdSession[0].questions = createdQuestions.map((q) => q._id);
+
+await createdSession[0].save({
+  session: mongoSession,
+});
 
             res.status(201).json({
                 success: true,
