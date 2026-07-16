@@ -1,8 +1,6 @@
 import ProfileInfoCard from "./components/Cards/ProfileinfoCard";
 import React, { useContext, useState, useEffect } from "react";
 import { APP_FEATURES, STATS, HOW_IT_WORKS_STEPS } from "./utils/data";
-import { useNavigate } from "react-router-dom";
-import { Link } from "react-router-dom";
 import { useNavigate, Link } from "react-router-dom";
 import {
   LuSparkles,
