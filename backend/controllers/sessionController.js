@@ -33,16 +33,17 @@ exports.createSession = async (req, res) => {
     try {
         await mongoSession.withTransaction(async () => {
             const userId = req.user._id;
-            const experience = Number(req.body.experience);
+            const { role, experience, topicsToFocus, description } = req.body;
+            const experienceNumber = Number(experience);
  
-            if (isNaN(experience)) {
+            if (isNaN(experienceNumber)) {
               return res.status(400).json({
                     success: false,
                     message: "Years of experience must be a valid number.",
            });
          }
 
-          if (experience < 0 || experience > MAX_EXPERIENCE) {
+          if (experienceNumber < 0 || experienceNumber > MAX_EXPERIENCE) {
              return res.status(400).json({
                    success: false,
                    message: `Years of experience must be between 0 and ${MAX_EXPERIENCE}.`,
@@ -60,7 +61,10 @@ exports.createSession = async (req, res) => {
                 [
                     {
                         user: userId,
-                        ...req.body,
+                        role,
+                        experience,
+                        topicsToFocus,
+                        description,
                     },
                 ],
                 {
