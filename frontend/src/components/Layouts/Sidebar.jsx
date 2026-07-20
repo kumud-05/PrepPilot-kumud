@@ -219,7 +219,7 @@ const Sidebar = () => {
 
           {/* Children with left-border indent line */}
           {isOpen && (
-            <div className="ml-[22px] mt-0.5 mb-1 pl-3 border-l border-white/10 space-y-0.5">
+            <div className="ml-[22px] mt-0.5 mb-1 pl-3 border-l border-white/10 space-y-5">
               {item.items.map((navItem) => {
                 const isActive = location.pathname === navItem.path ||
                   location.pathname.startsWith(navItem.path + "/");
@@ -227,7 +227,7 @@ const Sidebar = () => {
                   <button
                     key={navItem.id}
                     onClick={() => handleServiceClick(navItem)}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm transition-all duration-150 ${
+                    className={`w-full flex items-center gap-2.5 px-3 py-1.5 rounded-xl text-sm transition-all duration-150 ${
                       isActive
                         ? "bg-white/10 text-white font-semibold shadow-sm"
                         : "text-gray-400 hover:bg-white/5 hover:text-gray-200 font-medium"
@@ -257,7 +257,7 @@ const Sidebar = () => {
       </div>
 
       {/* Nav */}
-      <div className="flex-1 overflow-y-auto py-3 px-3 space-y-0.5 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto py-3 px-3 space-y-1.5 custom-scrollbar">
         {renderNavItems()}
       </div>
 

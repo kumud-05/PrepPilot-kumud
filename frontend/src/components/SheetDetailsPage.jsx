@@ -33,7 +33,7 @@ const SubtopicRow = memo(({ sub, sectionIdx, topicIdx, subIdx, completed, follow
         </button>
         
         <span className={`text-sm font-medium transition-all duration-200 ${
-          completed ? "text-gray-400 dark:text-gray-500 line-through decoration-gray-300 dark:decoration-gray-600 origin-left" : "text-gray-800 dark:text-gray-200 group-hover:text-violet-600 dark:group-hover:text-violet-400"
+          completed ? "text-gray-400 dark:text-gray-500" : "text-gray-800 dark:text-gray-200 group-hover:text-violet-600 dark:group-hover:text-violet-400"
         }`}>
           {sub.title}
         </span>
@@ -122,37 +122,31 @@ function SheetDetail() {
   const completedCount = Object.values(completedTopics).filter(Boolean).length;
 
   useEffect(() => {
-    if (followed) {
-      const percentage =
-        totalSubtopics > 0
-          ? Math.round((completedCount / totalSubtopics) * 100)
-          : 0;
+    if (!followed) return;
 
-      // Debounce the localStorage save slightly to avoid blocking rapid clicks
-      const saveToStorage = setTimeout(() => {
-        localStorage.setItem(
-          `${id}-progress`,
-          JSON.stringify({
-            followed: true,
-            completedTopics,
-            percentage,
-          })
-        );
-        localStorage.setItem("sheet-last-update", Date.now().toString());
+    const percentage =
+      totalSubtopics > 0
+        ? Math.round((completedCount / totalSubtopics) * 100)
+        : 0;
 
-        // Sync to backend so dashboard can see it
-        axiosInstance.post("/api/user/sheet-progress", {
-          sheetId: id,
-          followed: true,
-          completedTopics,
-          percentage
-        }).catch(err => console.error("Failed to sync progress to backend:", err));
+    const saveToStorage = setTimeout(() => {
+      localStorage.setItem(
+        `${id}-progress`,
+        JSON.stringify({ followed: true, completedTopics, percentage })
+      );
+      localStorage.setItem("sheet-last-update", Date.now().toString());
 
-      }, 500);
+      axiosInstance.post("/api/user/sheet-progress", {
+        sheetId: id,
+        followed: true,
+        completedTopics,
+        percentage,
+      }).catch(err => console.error("Failed to sync progress to backend:", err));
+    }, 500);
 
-      return () => clearTimeout(saveToStorage);
-    }
-  }, [completedTopics, completedCount, followed, id, totalSubtopics]);
+    return () => clearTimeout(saveToStorage);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [completedTopics, followed]);
 
   const handleCompleteToggle = useCallback((sectionIdx, topicIdx, subIdx) => {
     if (!followed) return;
@@ -179,7 +173,21 @@ function SheetDetail() {
 
     } else {
       setFollowed(true);
-      // Backend sync occurs in the useEffect above when `followed` becomes true
+
+      // Save follow immediately to backend — the useEffect only fires on
+      // completedTopics changes, so we must explicitly save the follow here
+      localStorage.setItem(
+        `${id}-progress`,
+        JSON.stringify({ followed: true, completedTopics, percentage: 0 })
+      );
+      localStorage.setItem("sheet-last-update", Date.now().toString());
+
+      axiosInstance.post("/api/user/sheet-progress", {
+        sheetId: id,
+        followed: true,
+        completedTopics,
+        percentage: 0,
+      }).catch(err => console.error("Failed to sync follow to backend:", err));
     }
   };
 
@@ -207,10 +215,7 @@ function SheetDetail() {
         
         {/* Modern Hero Section */}
         <div className="bg-white/50 dark:bg-white/5 backdrop-blur-sm rounded-2xl p-6 md:p-8 mb-8 shadow-sm border border-gray-200 dark:border-white/10 relative overflow-hidden">
-          {/* Subtle Background Glow */}
-          <div className="absolute -right-20 -top-20 w-64 h-64 bg-gradient-to-br from-violet-500/10 to-fuchsia-500/10 rounded-full blur-3xl pointer-events-none"></div>
-          
-          <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div className="max-w-3xl">
               <h1 className="text-2xl md:text-3xl font-bold mb-3 text-gray-900 dark:text-white tracking-tight">
                 {sheet.title}
@@ -259,9 +264,9 @@ function SheetDetail() {
               <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Overall Progress</span>
               <span className="text-sm font-bold text-violet-600 dark:text-violet-400">{progressPercent}%</span>
             </div>
-            <div className="w-full bg-gray-200 dark:bg-gray-800 h-2 rounded-full overflow-hidden shadow-inner flex">
+            <div className="w-full bg-gray-200 dark:bg-white/10 h-2 rounded-full overflow-hidden shadow-inner flex">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 transition-all duration-700 ease-out"
+                className="h-full rounded-full bg-violet-600 transition-all duration-700 ease-out"
                 style={{ width: `${progressPercent}%` }}
               ></div>
             </div>

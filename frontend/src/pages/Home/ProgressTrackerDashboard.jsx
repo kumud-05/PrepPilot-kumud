@@ -29,17 +29,32 @@ const DonutChart = ({ value, max, size = 84, stroke = 9, color = "#7c3aed" }) =>
   );
 };
 
-/* ── Horizontal topic bar ────────────────────────────────────────────────── */
-const TopicBar = ({ topic, count, max }) => {
-  const pct = max > 0 ? (count / max) * 100 : 0;
-  const color = pct === 100 ? "bg-violet-500" : pct >= 60 ? "bg-fuchsia-500" : "bg-blue-500";
+/* ── Difficulty breakdown ────────────────────────────────────────────────── */
+const DIFF_CONFIG = {
+  easy:   { label: "Easy",   bar: "bg-emerald-500", text: "text-emerald-400", bg: "bg-emerald-500/10" },
+  medium: { label: "Medium", bar: "bg-yellow-400",  text: "text-yellow-400",  bg: "bg-yellow-400/10" },
+  hard:   { label: "Hard",   bar: "bg-red-500",     text: "text-red-400",     bg: "bg-red-500/10" },
+};
+
+const DiffBar = ({ level, solved, total }) => {
+  const cfg = DIFF_CONFIG[level];
+  const pct = total > 0 ? Math.round((solved / total) * 100) : 0;
   return (
-    <div className="flex items-center gap-3">
-      <span className="w-32 text-right text-[11px] text-gray-400 truncate shrink-0">{topic}</span>
-      <div className="flex-1 h-4 bg-white/5 rounded overflow-hidden">
-        <div className={`h-full ${color} rounded transition-all duration-700`} style={{ width: `${pct}%` }} />
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between text-xs">
+        <div className="flex items-center gap-2">
+          <span className={`w-2 h-2 rounded-full ${cfg.bar}`} />
+          <span className={`font-semibold ${cfg.text}`}>{cfg.label}</span>
+        </div>
+        <span className="text-gray-400">
+          <span className="text-white font-bold">{solved}</span>
+          <span className="text-gray-500"> / {total}</span>
+        </span>
       </div>
-      <span className="w-7 text-[11px] text-gray-300 font-semibold text-right shrink-0">{count}</span>
+      <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+        <div className={`h-full ${cfg.bar} rounded-full transition-all duration-700`}
+          style={{ width: `${pct}%` }} />
+      </div>
     </div>
   );
 };
@@ -59,22 +74,30 @@ const StatCard = ({ label, value, icon: Icon, accent }) => (
 const fmtSheet = (id) =>
   (id || "Unknown").split("-").map(w => w[0].toUpperCase() + w.slice(1)).join(" ");
 
-function buildTopics(progress) {
-  const map = {};
+function buildDifficultyStats(progress, sheetsMap) {
+  const stats = { easy: { solved: 0, total: 0 }, medium: { solved: 0, total: 0 }, hard: { solved: 0, total: 0 } };
+
   progress.forEach(s => {
-    Object.entries(s.completedTopics || {}).forEach(([t, v]) => {
-      map[t] = (map[t] || 0) + (typeof v === "number" ? v : v?.solved || 0);
+    const sheet = sheetsMap[s.sheetId];
+    if (!sheet) return;
+    const completed = s.completedTopics || {};
+
+    sheet.sections?.forEach((section, sIdx) => {
+      section.topics?.forEach((topic, tIdx) => {
+        topic.subtopics?.forEach((sub, subIdx) => {
+          const diff = (sub.difficulty || "medium").toLowerCase();
+          const key = `${sIdx}-${tIdx}-${subIdx}`;
+          const bucket = stats[diff] || stats.medium;
+          bucket.total++;
+          if (completed[key]) bucket.solved++;
+        });
+      });
     });
   });
-  return Object.entries(map).sort((a, b) => b[1] - a[1]).slice(0, 8)
-    .map(([topic, count]) => ({ topic, count }));
+
+  return stats;
 }
 
-function totalSolved(progress) {
-  return progress.reduce((acc, s) =>
-    acc + Object.values(s.completedTopics || {}).reduce((sum, v) =>
-      sum + (typeof v === "number" ? v : v?.solved || 0), 0), 0);
-}
 
 /* ── Main ────────────────────────────────────────────────────────────────── */
 const ProgressTrackerDashboard = () => {
@@ -84,23 +107,63 @@ const ProgressTrackerDashboard = () => {
   const [sessions, setSessions] = useState([]);
   const [resumes, setResumes] = useState([]);
   const [sheetProgress, setSheetProgress] = useState([]);
+  const [sheetsMap, setSheetsMap] = useState({});
 
   useEffect(() => {
     (async () => {
       setLoading(true);
       try {
-        const [sRes, rRes, pRes] = await Promise.all([
+        const [sRes, rRes, pRes, shRes] = await Promise.all([
           axiosInstance.get(API_PATHS.SESSION.GET_ALL).catch(() => ({ data: [] })),
           axiosInstance.get(API_PATHS.RESUME.GET_ALL).catch(() => ({ data: { resumes: [] } })),
           axiosInstance.get("/api/user/sheet-progress").catch(() => ({ data: { progressList: [] } })),
+          axiosInstance.get("/api/sheets").catch(() => ({ data: { sheets: [] } })),
         ]);
         setSessions(sRes.data || []);
         setResumes(rRes.data?.resumes || []);
-        setSheetProgress(
-          (pRes.data?.progressList || [])
-            .filter(p => p.percentage > 0 || p.followed)
-            .sort((a, b) => b.percentage - a.percentage)
-        );
+
+        // Build a sheetId → sheet object lookup
+        const map = {};
+        (shRes.data?.sheets || []).forEach(sh => { map[sh.id] = sh; });
+        setSheetsMap(map);
+
+        // Start with backend data
+        const backendProgress = pRes.data?.progressList || [];
+        const backendIds = new Set(backendProgress.map(p => p.sheetId));
+
+        // Merge localStorage entries for any followed sheets not yet in backend
+        // and sync them up in the background
+        const localExtra = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (!key || !key.endsWith("-progress")) continue;
+          const sheetId = key.replace(/-progress$/, "");
+          if (backendIds.has(sheetId)) continue;
+          try {
+            const raw = JSON.parse(localStorage.getItem(key) || "{}");
+            if (raw.followed) {
+              localExtra.push({
+                sheetId,
+                followed: true,
+                completedTopics: raw.completedTopics || {},
+                percentage: raw.percentage || 0,
+              });
+              // Background sync to backend
+              axiosInstance.post("/api/user/sheet-progress", {
+                sheetId,
+                followed: true,
+                completedTopics: raw.completedTopics || {},
+                percentage: raw.percentage || 0,
+              }).catch(() => {});
+            }
+          } catch {}
+        }
+
+        const merged = [...backendProgress, ...localExtra]
+          .filter(p => p.percentage > 0 || p.followed)
+          .sort((a, b) => b.percentage - a.percentage);
+
+        setSheetProgress(merged);
       } catch {
         toast.error("Failed to load dashboard data.");
       } finally {
@@ -117,9 +180,8 @@ const ProgressTrackerDashboard = () => {
     );
   }
 
-  const topicData   = buildTopics(sheetProgress);
-  const maxCount    = topicData[0]?.count || 1;
-  const solved      = totalSolved(sheetProgress);
+  const diffStats   = buildDifficultyStats(sheetProgress, sheetsMap);
+  const solved      = diffStats.easy.solved + diffStats.medium.solved + diffStats.hard.solved;
   const displayName = user?.firstName
     ? `${user.firstName}${user.lastName ? " " + user.lastName : ""}`
     : user?.name || "PrepPilot User";
@@ -210,27 +272,54 @@ const ProgressTrackerDashboard = () => {
         {/* ══ MIDDLE ROW: Analysis + Sessions ══════════════════════════════ */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
 
-          {/* DSA Topic Analysis */}
+          {/* DSA Level Analysis */}
           <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/8 rounded-2xl p-5">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-5">
               <h2 className="text-sm font-bold flex items-center gap-2 text-gray-900 dark:text-white">
-                <Code2 size={15} className="text-violet-400" /> DSA Topic Analysis
+                <Code2 size={15} className="text-violet-400" /> DSA Level Analysis
               </h2>
               <button onClick={() => navigate("/coding-sheets")}
                 className="text-xs text-violet-400 hover:text-violet-300 flex items-center gap-1 transition-colors">
                 View Sheets <ArrowRight size={11} />
               </button>
             </div>
-            {topicData.length > 0 ? (
-              <div className="space-y-2.5">
-                {topicData.map(({ topic, count }) => (
-                  <TopicBar key={topic} topic={topic} count={count} max={maxCount} />
-                ))}
+            {(diffStats.easy.total + diffStats.medium.total + diffStats.hard.total) > 0 ? (
+              <div className="space-y-5">
+                {/* Summary badges */}
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { level: "easy",   ...diffStats.easy },
+                    { level: "medium", ...diffStats.medium },
+                    { level: "hard",   ...diffStats.hard },
+                  ].map(({ level, solved: s, total: t }) => {
+                    const cfg = DIFF_CONFIG[level];
+                    return (
+                      <div key={level} className={`rounded-xl p-3 text-center ${cfg.bg}`}>
+                        <p className={`text-xl font-extrabold ${cfg.text}`}>{s}</p>
+                        <p className="text-[10px] text-gray-400 mt-0.5">/ {t}</p>
+                        <p className={`text-[11px] font-semibold mt-1 ${cfg.text}`}>{cfg.label}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+                {/* Progress bars */}
+                <div className="space-y-3">
+                  <DiffBar level="easy"   solved={diffStats.easy.solved}   total={diffStats.easy.total} />
+                  <DiffBar level="medium" solved={diffStats.medium.solved} total={diffStats.medium.total} />
+                  <DiffBar level="hard"   solved={diffStats.hard.solved}   total={diffStats.hard.total} />
+                </div>
+                {/* Total */}
+                <div className="flex items-center justify-between pt-3 border-t border-white/8 text-xs text-gray-500">
+                  <span>Total solved</span>
+                  <span className="text-white font-bold">
+                    {solved} / {diffStats.easy.total + diffStats.medium.total + diffStats.hard.total}
+                  </span>
+                </div>
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-10 text-center">
                 <Code2 size={28} className="text-gray-300 dark:text-white/20 mb-2" />
-                <p className="text-sm text-gray-500">Follow a DSA sheet to see topic breakdown.</p>
+                <p className="text-sm text-gray-500">Follow a DSA sheet to see difficulty breakdown.</p>
                 <button onClick={() => navigate("/coding-sheets")}
                   className="mt-3 px-4 py-1.5 text-xs font-semibold bg-violet-600 hover:bg-violet-700 text-white rounded-lg transition-colors">
                   Explore Sheets
@@ -374,7 +463,7 @@ const ProgressTrackerDashboard = () => {
             {resumes.length > 0 ? (
               <div className="space-y-2">
                 {resumes.slice(0, 4).map(r => (
-                  <button key={r._id} onClick={() => navigate("/resume-builder")}
+                  <button key={r._id} onClick={() => navigate(`/resume-builder/${r._id}`)}
                     className="w-full flex items-center gap-3 p-3 rounded-xl border border-gray-100 dark:border-white/8 hover:border-blue-400/30 hover:bg-blue-500/5 transition-all text-left group">
                     <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center shrink-0">
                       <FileText size={13} />

@@ -120,10 +120,9 @@ function SheetList({ type }) {
               <Link
                 to={`/sheet/${sheet.id}`}
                 key={sheet.id}
-                className="group relative bg-white dark:bg-[#1e293b] border border-gray-100 dark:border-gray-700 rounded-xl p-5 flex flex-col shadow-sm hover:shadow-xl transition-all duration-300 min-h-[190px] overflow-hidden ring-1 ring-black/5 dark:ring-white/5"
+                className="group relative bg-white dark:bg-[#1e293b] border border-gray-100 dark:border-gray-700 rounded-xl p-5 flex flex-col shadow-sm hover:shadow-md transition-all duration-300 min-h-[190px] overflow-hidden ring-1 ring-black/5 dark:ring-white/5"
               >
-                {/* Glowing Hover Background */}
-                <div className="absolute -right-6 -top-6 w-32 h-32 bg-gradient-to-br from-violet-500 to-fuchsia-500 opacity-0 group-hover:opacity-5 dark:group-hover:opacity-10 rounded-full blur-3xl transition-opacity duration-500"></div>
+                {/* Glow removed */}
 
                 <div className="flex items-start gap-3 mb-3">
                   <div className="flex-shrink-0 p-2.5 rounded-xl bg-violet-50 dark:bg-violet-900/20 text-violet-600 dark:text-violet-400 ring-1 ring-black/5 dark:ring-white/10">
@@ -151,7 +150,7 @@ function SheetList({ type }) {
 
                 <div className="w-full bg-gray-100 dark:bg-gray-800 h-1.5 rounded-full mb-3 overflow-hidden shadow-inner">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 relative transition-all duration-700 ease-out"
+                    className="h-full rounded-full bg-violet-600 relative transition-all duration-700 ease-out"
                     style={{ width: `${progress}%` }}
                   >
                   </div>
